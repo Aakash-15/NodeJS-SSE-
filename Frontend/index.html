@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real-Time User Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --glass-bg: rgba(30, 41, 59, 0.7);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --status-active: #10b981;
+      --status-inactive: #ef4444;
+      --status-pending: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-color);
+      background-image:
+        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 3rem 1rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+    }
+
+    .header {
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(to right, #60a5fa, #34d399);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header p {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+    }
+
+    .glass-panel {
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      animation: fadeIn 0.8s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    th,
+    td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    th {
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+    }
+
+    tr {
+      transition: background-color 0.2s ease;
+    }
+
+    tr:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+
+    .name {
+      font-weight: 500;
+      color: var(--text-main);
+    }
+
+    .role {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .status-badge::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .status-Active {
+      color: var(--status-active);
+      background-color: rgba(16, 185, 129, 0.1);
+    }
+
+    .status-Active::before {
+      background-color: var(--status-active);
+      box-shadow: 0 0 8px var(--status-active);
+    }
+
+    .status-Inactive {
+      color: var(--status-inactive);
+      background-color: rgba(239, 68, 68, 0.1);
+    }
+
+    .status-Inactive::before {
+      background-color: var(--status-inactive);
+      box-shadow: 0 0 8px var(--status-inactive);
+    }
+
+    .status-Pending {
+      color: var(--status-pending);
+      background-color: rgba(245, 158, 11, 0.1);
+    }
+
+    .status-Pending::before {
+      background-color: var(--status-pending);
+      box-shadow: 0 0 8px var(--status-pending);
+    }
+
+    /* A simple pulse animation when a row is updated */
+    @keyframes highlightRow {
+      0% {
+        background-color: rgba(59, 130, 246, 0.4);
+      }
+
+      100% {
+        background-color: transparent;
+      }
+    }
+
+    .updated {
+      animation: highlightRow 1.5s ease-out;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <div class="header">
+      <h1>Live User Directory</h1>
+    </div>
+
+    <div class="glass-panel">
+      <div class="table-wrapper">
+        <table id="usersTable">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Role</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="usersBody">
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const usersBody = document.getElementById('usersBody');
+
+
+    async function fetchInitialData() {
+      try {
+        const response = await fetch('/api/data');
+        const users = await response.json();
+        renderTable(users);
+      } catch (error) {
+        console.error('Error fetching initial data:', error);
+      }
+    }
+
+    const evtSource = new EventSource('/stream');
+
+
+
+    evtSource.addEventListener('user_updated', (event) => {
+      const updatedUser = JSON.parse(event.data);
+      updateRow(updatedUser);
+    });
+
+
+    function renderTable(users) {
+      usersBody.innerHTML = '';
+      users.forEach(user => {
+        const tr = document.createElement('tr');
+        tr.id = `user-${user.id}`;
+        tr.innerHTML = getRowHTML(user);
+        usersBody.appendChild(tr);
+      });
+    }
+
+
+    function updateRow(user) {
+      const tr = document.getElementById(`user-${user.id}`);
+      if (tr) {
+        tr.innerHTML = getRowHTML(user);
+        tr.classList.remove('updated');
+        void tr.offsetWidth;
+        tr.classList.add('updated');
+      }
+    }
+
+    function getRowHTML(user) {
+      return `
+        <td>
+          <div class="name">${user.name}</div>
+        </td>
+        <td><div class="role">${user.role}</div></td>
+        <td>
+          <span class="status-badge status-${user.status}">${user.status}</span>
+        </td>
+      `;
+    }
+
+    fetchInitialData();
+  </script>
+</body>
+
+</html>
